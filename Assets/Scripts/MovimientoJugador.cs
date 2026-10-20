@@ -18,9 +18,9 @@ public class MovimientoJugador : MonoBehaviour
 
     private Rigidbody2D fisica;
 
-    [Header("RaycastLong")]
+    [Header("Detectores")]
 
-    public float longitudRaycast = 1f;
+    public float longitudRaycast = 1.5f;
 
     private Vector2 entradaX;
 
@@ -47,14 +47,23 @@ public class MovimientoJugador : MonoBehaviour
 
         entradaX = actionMover.action.ReadValue<Vector2>();
 
-        // entradaY = actionMover.action.ReadValue<Vector2>();
 
+
+        // entradaY = actionMover.action.ReadValue<Vector2>();
+        /*
         RaycastHit2D hit = Physics2D.Raycast(transform.position,Vector2.down,longitudRaycast,capaSuelo);
+
+        tocandoSuelo = hit.collider != null;
+
+        Color colorRayo = tocandoSuelo ? Color.green : Color.red;
+
+        Debug.DrawRay(transform.position, Vector2.down * longitudRaycast, colorRayo);
 
         //Devuelve True UNA VEZ si el espacio a sido presionado, luego de eso se vuelve FALSE (Para registrar mantener presionado usar IsPressed() ) 
         if (actionSaltar.action.WasPressedThisFrame() && tocandoSuelo) {
             pendienteSaltar = true;
         }
+        */
 
     }
 
