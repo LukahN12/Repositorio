@@ -1,6 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Animator))]
+
 public class MovimientoJugador : MonoBehaviour
 {
     [Header("Movimiento")]
@@ -17,6 +21,10 @@ public class MovimientoJugador : MonoBehaviour
     [SerializeField] private LayerMask capaSuelo;
 
     private Rigidbody2D fisica;
+
+    private SpriteRenderer sprite;
+
+    private Animator animador;
 
     [Header("Detectores")]
 
@@ -35,6 +43,10 @@ public class MovimientoJugador : MonoBehaviour
         
         // Detiene el rigidBody para modificar su velocidad linear
         fisica = GetComponent<Rigidbody2D>();
+
+        sprite = GetComponent<SpriteRenderer>();
+
+        animador = GetComponent<Animator>();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -46,11 +58,7 @@ public class MovimientoJugador : MonoBehaviour
     void Update() {
 
         entradaX = actionMover.action.ReadValue<Vector2>();
-
-
-
-        // entradaY = actionMover.action.ReadValue<Vector2>();
-        /*
+        
         RaycastHit2D hit = Physics2D.Raycast(transform.position,Vector2.down,longitudRaycast,capaSuelo);
 
         tocandoSuelo = hit.collider != null;
@@ -63,7 +71,8 @@ public class MovimientoJugador : MonoBehaviour
         if (actionSaltar.action.WasPressedThisFrame() && tocandoSuelo) {
             pendienteSaltar = true;
         }
-        */
+        
+
 
     }
 
@@ -80,7 +89,26 @@ public class MovimientoJugador : MonoBehaviour
             pendienteSaltar = false;
         }
 
-        
+        OrientarSprite();
+        animarJugador();
+    }
+
+    private void animarJugador()
+    {
+        if(animador == null)
+        {
+            return;
+        }
+
+        if (!tocandoSuelo){
+            animador.Play("JugadorSaltando");
+        } else if(fisica.linearVelocity.x != 0)
+        {
+            animador.Play("JugadorCorriendo");
+        } else
+        {
+            animador.Play("JugadorParado");
+        }
     }
 
     private void OnEnable()
@@ -114,4 +142,20 @@ public class MovimientoJugador : MonoBehaviour
         }
     }
 
+    private void OrientarSprite()
+    {
+        if (sprite == null)
+        {
+            return;
+        }
+
+        if (fisica.linearVelocity.x > 0)
+        {
+            sprite.flipX = false;
+        }
+        else if (fisica.linearVelocity.x < 0)
+        {
+            sprite.flipX = true;
+        }
+    }
 }

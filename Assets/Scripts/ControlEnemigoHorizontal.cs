@@ -1,12 +1,11 @@
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
-public class ControlEnemigo : MonoBehaviour
+public class ControlEnemigoHorizontal : MonoBehaviour
 {
     private Rigidbody2D fisica;
 
-    private Boolean subiendo = true;
+    private Boolean moviendose = true;
 
     [Header("Posiciones de desplazamiento")]
 
@@ -26,29 +25,32 @@ public class ControlEnemigo : MonoBehaviour
     private void Start()
     {
         posicionOriginal = fisica.position;
+        transform.position = posicionOriginal;
     }
 
     void FixedUpdate()
     {
-        if(velocidad <= 0)
+        if (velocidad <= 0)
         {
             return;
         }
 
         Vector2 posicionObjetivo;
-        if (subiendo) {
+        if (moviendose)
+        {
             posicionObjetivo = posicionFinal;
-        } else {
+        }
+        else
+        {
             posicionObjetivo = posicionOriginal;
         }
 
-        if (Vector2.Distance(fisica.position, posicionObjetivo) <= tolerancia){
-            subiendo = !subiendo;
-            posicionObjetivo = subiendo ? posicionFinal : posicionOriginal;
-                
+        if (Vector2.Distance(fisica.position, posicionObjetivo) <= tolerancia)
+        {
+            moviendose = !moviendose;
+            posicionObjetivo = moviendose ? posicionFinal : posicionOriginal;
+
         }
         fisica.MovePosition(Vector2.MoveTowards(fisica.position, posicionObjetivo, velocidad * Time.fixedDeltaTime));
-    } 
-
-    
+    }
 }
