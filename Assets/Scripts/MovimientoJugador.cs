@@ -38,6 +38,10 @@ public class MovimientoJugador : MonoBehaviour
 
     private bool tocandoSuelo;
 
+    [Header("Spawnpoint")]
+
+    [SerializeField] private Transform spawnpoint;
+
     // Se ejecuta antes que el Start y se ejecuta INCLUSO si el script esta desactivado. 
     private void Awake() {
         
@@ -91,6 +95,18 @@ public class MovimientoJugador : MonoBehaviour
 
         OrientarSprite();
         animarJugador();
+    }
+
+    public void ReaparecerJugador()
+    {
+        if(spawnpoint == null)
+        {
+            Debug.LogError("El spawnpoint no puede ser nulo",this);
+            enabled = true;
+            return;
+        }
+        fisica.position = (Vector2) spawnpoint.position;
+        fisica.linearVelocity = Vector2.zero;
     }
 
     private void animarJugador()

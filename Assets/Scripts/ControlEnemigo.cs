@@ -62,6 +62,18 @@ public class ControlEnemigo : MonoBehaviour
         animarEnemigo();
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Player")) return;
+        if (collision.gameObject.TryGetComponent(out MovimientoJugador jugador))
+        {
+            jugador.ReaparecerJugador();
+        } else
+        {
+            Debug.LogError("El objeto Player necesita MovimientoJugador para poder reaparecer");
+        }
+    }
+
     private void animarEnemigo()
     {
         if (animador == null)
