@@ -67,7 +67,7 @@ public class ControlEnemigo : MonoBehaviour
         if (!collision.gameObject.CompareTag("Player")) return;
         if (collision.gameObject.TryGetComponent(out MovimientoJugador jugador))
         {
-            jugador.ReaparecerJugador();
+            jugador.quitarVida();
         } else
         {
             Debug.LogError("El objeto Player necesita MovimientoJugador para poder reaparecer");

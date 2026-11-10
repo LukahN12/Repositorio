@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
@@ -42,6 +43,31 @@ public class MovimientoJugador : MonoBehaviour
 
     [SerializeField] private Transform spawnpoint;
 
+    [Header("Puntos")]
+
+    [SerializeField] private int puntos = 0;
+
+    [Header("Salud")]
+
+    [SerializeField] private int segundosInvulnerable = 2;
+
+    [SerializeField] private int VidaTotal = 0;
+
+    private int vidaActual => VidaTotal;
+
+    private Color colorOriginal;    
+    private bool vulnerable = true;
+
+    [Header("Tiempo")]
+
+    [SerializeField, Min(1)] private int tiempoLimite = 100;
+
+    [SerializeField] private int tiempoEmpleado ;
+
+    private float tiempoInicio;
+
+    private float tiempoReal;
+
     // Se ejecuta antes que el Start y se ejecuta INCLUSO si el script esta desactivado. 
     private void Awake() {
         
@@ -55,15 +81,42 @@ public class MovimientoJugador : MonoBehaviour
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start() {
-       
+        if (sprite != null)
+        {
+            colorOriginal = sprite.color;
+        } else
+        {
+           Debug.LogWarning("El SpriteRenderer no está asignado en el objeto " + gameObject.name);
+        }
+
+        tiempoInicio = Time.time;
     }
 
     // Update is called once per frame
     void Update() {
 
         entradaX = actionMover.action.ReadValue<Vector2>();
-        
-        RaycastHit2D hit = Physics2D.Raycast(transform.position,Vector2.down,longitudRaycast,capaSuelo);
+
+        saltarJugador();
+
+        animarJugador();
+
+        ComprobarFinJuegoTiempo();
+    }
+
+    private void ComprobarFinJuegoTiempo()
+    {
+        tiempoReal = Time.time - tiempoInicio;
+        tiempoEmpleado = Mathf.FloorToInt(tiempoReal);
+        if (tiempoEmpleado >= tiempoLimite)
+        {
+            FinJuego();
+        }
+    }
+
+    private void saltarJugador()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycast, capaSuelo);
 
         tocandoSuelo = hit.collider != null;
 
@@ -72,29 +125,27 @@ public class MovimientoJugador : MonoBehaviour
         Debug.DrawRay(transform.position, Vector2.down * longitudRaycast, colorRayo);
 
         //Devuelve True UNA VEZ si el espacio a sido presionado, luego de eso se vuelve FALSE (Para registrar mantener presionado usar IsPressed() ) 
-        if (actionSaltar.action.WasPressedThisFrame() && tocandoSuelo) {
+        if (actionSaltar.action.WasPressedThisFrame() && tocandoSuelo)
+        {
             pendienteSaltar = true;
         }
-        
-
-
     }
 
     private void FixedUpdate()
     {
+        moverJugador();
+        OrientarSprite();
+    }
+
+    private void moverJugador()
+    {
         fisica.linearVelocity = new Vector2(entradaX.x * velocidad, fisica.linearVelocityY);
 
-        // fisica.linearVelocity = new Vector2(fisica.linearVelocityX, entradaY.y * velocidad);
-
-
-        //Genera un movimiento hacia arria (.down para abajo) y lo multiplica por el impulso
-        if (pendienteSaltar) {
+        if (pendienteSaltar)
+        {
             fisica.AddForce(Vector2.up * impulso, ForceMode2D.Impulse);
             pendienteSaltar = false;
         }
-
-        OrientarSprite();
-        animarJugador();
     }
 
     public void ReaparecerJugador()
@@ -172,6 +223,45 @@ public class MovimientoJugador : MonoBehaviour
         else if (fisica.linearVelocity.x < 0)
         {
             sprite.flipX = true;
+        }
+    }
+
+    public void incrementarPuntos(int cantidad)
+    {
+
+        if (cantidad <= 0) return;
+
+        puntos += cantidad;
+    }
+
+    public void quitarVida()
+    {
+        if (!vulnerable) return;
+        vulnerable = false;
+        VidaTotal--;
+        if (sprite != null)
+        {
+            sprite.color = Color.blue;
+        }
+        if (vidaActual <= 0)
+        {
+            FinJuego();
+        }
+        Invoke(nameof(HacerVulnerable), segundosInvulnerable);
+    }
+
+    public void FinJuego()
+    {
+        Debug.Log("Fin del juego");
+        gameObject.SetActive(false);
+    }
+
+    private void HacerVulnerable()
+    {
+        vulnerable = true;
+        if (sprite != null)
+        {
+            sprite.color = colorOriginal;
         }
     }
 }
