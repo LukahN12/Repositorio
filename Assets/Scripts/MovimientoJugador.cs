@@ -3,6 +3,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(SpriteRenderer))]
 [RequireComponent(typeof(Animator))]
 
@@ -23,14 +24,17 @@ public class MovimientoJugador : MonoBehaviour
 
     private Rigidbody2D fisica;
 
+    private BoxCollider2D hitbox;
+
     private SpriteRenderer sprite;
 
     private Animator animador;
 
     [Header("Detectores")]
 
-    public float longitudRaycast = 1.5f;
+    public float longitudRaycastDown = 1.5f;
 
+    public float longitudRaycastUp = 1.8f;
     private Vector2 entradaX;
 
     private Vector2 entradaY;
@@ -38,6 +42,8 @@ public class MovimientoJugador : MonoBehaviour
     private bool pendienteSaltar;
 
     private bool tocandoSuelo;
+        
+    private bool tocandoSueloAbajo;
 
     [Header("Spawnpoint")]
 
@@ -77,6 +83,8 @@ public class MovimientoJugador : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
 
         animador = GetComponent<Animator>();
+
+        hitbox = GetComponent<BoxCollider2D>();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -97,9 +105,11 @@ public class MovimientoJugador : MonoBehaviour
 
         entradaX = actionMover.action.ReadValue<Vector2>();
 
+        animarJugador();
+
         saltarJugador();
 
-        animarJugador();
+        comprobarTecho();
 
         ComprobarFinJuegoTiempo();
     }
@@ -116,18 +126,43 @@ public class MovimientoJugador : MonoBehaviour
 
     private void saltarJugador()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycast, capaSuelo);
+        RaycastHit2D hitSuelo = Physics2D.Raycast(transform.position, Vector2.down, longitudRaycastDown, capaSuelo);
 
-        tocandoSuelo = hit.collider != null;
+        tocandoSuelo = hitSuelo.collider != null;
 
         Color colorRayo = tocandoSuelo ? Color.green : Color.red;
 
-        Debug.DrawRay(transform.position, Vector2.down * longitudRaycast, colorRayo);
+        Debug.DrawRay(transform.position, Vector2.down * longitudRaycastDown, colorRayo);
 
         //Devuelve True UNA VEZ si el espacio a sido presionado, luego de eso se vuelve FALSE (Para registrar mantener presionado usar IsPressed() ) 
         if (actionSaltar.action.WasPressedThisFrame() && tocandoSuelo)
         {
             pendienteSaltar = true;
+        }
+    }
+
+    public void comprobarTecho()
+    {
+        RaycastHit2D hitSueloAbajo = Physics2D.Raycast(transform.position, Vector2.up, longitudRaycastUp, capaSuelo);
+        Color colorRayo = tocandoSueloAbajo ? Color.green : Color.red;
+        Debug.DrawRay(transform.position, Vector2.up * longitudRaycastUp, colorRayo);
+        if (hitSueloAbajo.collider == null)
+        {
+            tocandoSueloAbajo = false;
+            return;
+        }
+        if (hitSueloAbajo.collider.gameObject.CompareTag("PlataformaFantasma"))
+        {
+            tocandoSueloAbajo = true;
+        }else
+        {
+            tocandoSueloAbajo = false;
+        }
+        if (actionSaltar.action.WasPressedThisFrame() && tocandoSueloAbajo)
+        {
+            Physics2D.IgnoreCollision(hitSueloAbajo.collider, hitbox, true);
+            new WaitForSecondsRealtime(2f);
+            Physics2D.IgnoreCollision(hitSueloAbajo.collider, hitbox, false);
         }
     }
 
