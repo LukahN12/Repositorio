@@ -74,6 +74,12 @@ public class MovimientoJugador : MonoBehaviour
 
     private float tiempoReal;
 
+    [Header("Canvas")]
+
+    [SerializeField] private Canvas canvasHUD;
+
+    private ControlHUD controlHUD;
+
     // Se ejecuta antes que el Start y se ejecuta INCLUSO si el script esta desactivado. 
     private void Awake() {
         
@@ -85,6 +91,24 @@ public class MovimientoJugador : MonoBehaviour
         animador = GetComponent<Animator>();
 
         hitbox = GetComponent<BoxCollider2D>();
+
+      
+    }
+
+    void inicializaHUD()
+    {
+        if (canvasHUD != null)
+        {
+            controlHUD = canvasHUD.GetComponent<ControlHUD>();
+            controlHUD.setVidas(vidaActual);
+            controlHUD.setObjetivos(GameObject.FindGameObjectsWithTag("PowerUp").Length);
+            controlHUD.setTiempo(tiempoLimite);
+        } else
+        {
+            Debug.LogError("El Canvas HUD no está asignado en el inspector.");
+            return;
+        }
+       
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -98,6 +122,8 @@ public class MovimientoJugador : MonoBehaviour
         }
 
         tiempoInicio = Time.time;
+
+        inicializaHUD();
     }
 
     // Update is called once per frame
@@ -118,6 +144,7 @@ public class MovimientoJugador : MonoBehaviour
     {
         tiempoReal = Time.time - tiempoInicio;
         tiempoEmpleado = Mathf.FloorToInt(tiempoReal);
+        controlHUD.setTiempo(tiempoLimite - tiempoEmpleado);
         if (tiempoEmpleado >= tiempoLimite)
         {
             FinJuego();
@@ -266,6 +293,7 @@ public class MovimientoJugador : MonoBehaviour
 
         if (cantidad <= 0) return;
 
+        controlHUD.setObjetivos((GameObject.FindGameObjectsWithTag("PowerUp").Length - 1));
         puntos += cantidad;
     }
 
@@ -274,6 +302,7 @@ public class MovimientoJugador : MonoBehaviour
         if (!vulnerable) return;
         vulnerable = false;
         VidaTotal--;
+        controlHUD.setVidas(vidaActual);
         if (sprite != null)
         {
             sprite.color = Color.blue;
